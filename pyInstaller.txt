@@ -1,0 +1,16 @@
+
+pyinstaller --onefile --windowed --icon=Ruk_Streaming_icon.ico -F --add-data="Ruk_Streaming_icon.ico;." Ruk-Streaming.py
+
+
+
+pyinstaller --onefile --windowed --icon=Ruk_Streaming_icon.ico -F --add-data C:\Users\tanun\AppData\Local\Programs\Python\Python37-32\Lib\site-packages\cv2\opencv_videoio_ffmpeg411.dll;. Ruk-Streaming.py
+
+
+ออฟชั่นที่ใช้กำหนด icon ของ .exe
+--onefile --windowed --icon=app.ico
+
+ออฟชั่นที่ใช้เพิ่มไฟล์ใน .exe
+-F --add-data="main.kv;."
+
+;.  คือไว้ในโฟลเดอร์ปัจจุบัน
+
