@@ -28,10 +28,15 @@ mainfrm.wm_iconbitmap(resource_path("Ruk_Streaming_icon.ico"))
 #region variable
 curr_directory = os.getcwd()
 RTMPserver = "rtmp://a.rtmp.youtube.com/live2"
-streamingKey = "4xwr-qkwd-m6ag-54tc"
-videoSource = "USB Camera"
-audioSource = "Microphone (USB Microphone)"    
-video_size = "1280x720"    
+streamingKey = "12t7-dyu6-wj2h-8xxy"
+
+videoSource = ""
+videoSourceVar = StringVar(mainfrm, "USB Camera")
+audioSource = "" 
+audioSourceVar = StringVar(mainfrm, "Microphone (USB Microphone)")
+video_size = ""   
+video_sizeVar = StringVar(mainfrm, "1280x720")  
+
 compressor = "-af acompressor=threshold=0.089:ratio=9:attack=200:release=1000"
 mediaFile = "D:\\temp\\bg002.jpg"
 #mediaFile = "D:\\temp\\mv.mp4"
@@ -58,6 +63,10 @@ def ask():
     return filename
  
 def stream():
+    video_size = video_sizeVar.get()
+    videoSource = videoSourceVar.get()
+    audioSource = audioSourceVar.get()
+
     if(outputVar.get()==1):     #record to file
         if(inputVar.get()==1):  #desktop
             os.system(f"""ffmpeg -y -rtbufsize 200M -f gdigrab -thread_queue_size 1024 -probesize 10M -r 10 -draw_mouse 1 -video_size {video_size} -i desktop -f dshow -channel_layout stereo -thread_queue_size 1024 -i audio="{audioSource}" {compressor} -c:v libx264 -r 10 -preset ultrafast -tune zerolatency -crf 25 -pix_fmt yuv420p -c:a aac -strict -2 -ac 2 -b:a 128k -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" "{outputFile}" """)
@@ -112,6 +121,23 @@ file.add_command(label="Open Folder..", command=openDir)
 file.add_separator()
 file.add_command(label="Exit", command=mainfrm.quit)
 menubar.add_cascade(label="File", menu=file)
+
+selectmnu = Menu(menubar, tearoff=0)
+selectmnu.add_checkbutton(label="HD 720p (1280x720)", onvalue="1280x720", variable=video_sizeVar)
+selectmnu.add_checkbutton(label="Standard 480p (854x480)", onvalue="854x480", variable=video_sizeVar)
+selectmnu.add_checkbutton(label="Traditional 360p (640x360)", onvalue="640x360", variable=video_sizeVar)
+menubar.add_cascade(label="VDO size", menu=selectmnu)
+
+select1mnu = Menu(menubar, tearoff=0)
+select1mnu.add_checkbutton(label="WebCam", onvalue="USB Camera", variable=videoSourceVar)
+select1mnu.add_checkbutton(label="ManyCam", onvalue="ManyCam Virtual Webcam", variable=videoSourceVar)
+menubar.add_cascade(label="Camera", menu=select1mnu)
+
+select2mnu = Menu(menubar, tearoff=0)
+select2mnu.add_checkbutton(label="Microphone", onvalue="Microphone (USB Microphone)", variable=audioSourceVar)
+select2mnu.add_checkbutton(label="Stereo Mix", onvalue="Stereo Mix (Realtek High Definition Audio)", variable=audioSourceVar)
+select2mnu.add_checkbutton(label="ManyCam", onvalue="Microphone (ManyCam Virtual Microphone)", variable=audioSourceVar)
+menubar.add_cascade(label="Audio", menu=select2mnu)
 
 menubar.add_cascade(label="About", command=msgAbout)
 mainfrm.config(menu=menubar)
