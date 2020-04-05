@@ -1,5 +1,5 @@
 #region import
-import os, sys 
+import os, sys, subprocess 
 from tkinter import Tk, IntVar, StringVar, Menu, messagebox, filedialog, Listbox, Scrollbar, ttk
 #endregion import
 
@@ -15,6 +15,22 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
+def list_devices():
+    global videoList, audioList
+
+    out = subprocess.Popen(['ffmpeg', '-list_devices', 'true', '-f', 'dshow', '-i', 'dummy'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT) #รันคำสั่ง list_devices
+    stdout,stderr = out.communicate()
+    dlist = stdout.decode('utf-8').split('"')   #ตัดช่วงใน เครื่องหมาย ""    
+    print("Detect devices: ")
+
+    for l in dlist:
+        if(l.find("Camera") >= 0 or l.find("Webcam") >= 0):  #ตรวจสอบหากล้อง
+            videoList.append(l)
+            print("   " + l)
+        elif(l.find("Audio") >= 0 or l.find("Microphone") >= 0):  #ตรวจสอบหาอุปกรณ์เสียง
+            audioList.append(l)
+            print("   " + l)
+
 #endregion special function
 
 #region FormInit
@@ -23,6 +39,10 @@ mainfrm.geometry("315x450+50+150")
 mainfrm.resizable(width=False, height=False)
 mainfrm.title("Ruk-Streaming 1.00")
 mainfrm.wm_iconbitmap(resource_path("Ruk_Streaming_icon.ico"))
+
+videoList = []
+audioList = []
+list_devices()
 #endregion FormInit
 
 #region variable
@@ -32,10 +52,10 @@ facebookURL = "rtmps://live-api-s.facebook.com:443/rtmp"
 streamingKey = "12t7-dyu6-wj2h-8xxy"
 RTMPserver = ""
 
-videoSource = "USB Camera"
-videoSourceVar = StringVar(mainfrm, "USB Camera")
-audioSource = "Microphone (USB Microphone)" 
-audioSourceVar = StringVar(mainfrm, "Microphone (USB Microphone)")
+videoSource = videoList[0]
+videoSourceVar = StringVar(mainfrm, videoList[0])
+audioSource = audioList[0] 
+audioSourceVar = StringVar(mainfrm, audioList[0])
 video_size = "1280x720"   
 video_sizeVar = StringVar(mainfrm, "1280x720")  
 
@@ -135,7 +155,6 @@ def selectmnu1Select():
         enKey.insert(0,outputFile)
         rdo5.configure(state="disabled")
         rdo6.configure(state="disabled")
-
     else:
         rdo5.configure(state="normal")
         rdo6.configure(state="normal")
@@ -181,15 +200,14 @@ selectmnu.add_checkbutton(label="Traditional 360p (640x360)", onvalue="640x360",
 menubar.add_cascade(label="VDO size", menu=selectmnu)
 
 select1mnu = Menu(menubar, tearoff=0)
-select1mnu.add_checkbutton(label="WebCam", onvalue="USB Camera", variable=videoSourceVar, command=selectmnu1Select)
-select1mnu.add_checkbutton(label="ManyCam", onvalue="ManyCam Virtual Webcam", variable=videoSourceVar, command=selectmnu1Select)
+for l in videoList:
+    select1mnu.add_checkbutton(label=l, onvalue=l, variable=videoSourceVar, command=selectmnu1Select)
 select1mnu.add_checkbutton(label="No Video", onvalue="No Video", variable=videoSourceVar, command=selectmnu1Select)
 menubar.add_cascade(label="Camera", menu=select1mnu)
 
 select2mnu = Menu(menubar, tearoff=0)
-select2mnu.add_checkbutton(label="Microphone", onvalue="Microphone (USB Microphone)", variable=audioSourceVar, command=selectmnu2Select)
-select2mnu.add_checkbutton(label="Stereo Mix", onvalue="Stereo Mix (Realtek High Definition Audio)", variable=audioSourceVar, command=selectmnu2Select)
-select2mnu.add_checkbutton(label="ManyCam", onvalue="Microphone (ManyCam Virtual Microphone)", variable=audioSourceVar, command=selectmnu2Select)
+for l in audioList:
+    select2mnu.add_checkbutton(label=l, onvalue=l, variable=audioSourceVar, command=selectmnu2Select)
 menubar.add_cascade(label="Audio", menu=select2mnu)
 
 menubar.add_cascade(label="About", command=msgAbout)
@@ -225,7 +243,7 @@ lblfrm3 = ttk.LabelFrame(mainfrm, text="Output config")
 lblfrm3.grid(column=0, row=2, columnspan=2, padx=10, pady=0, sticky="w")
 lbl1 = ttk.Label(lblfrm3,text="File name :    ")
 lbl1.grid(column=0, row=0, pady=5, padx=5)
-enKey = ttk.Entry(lblfrm3, width=25)
+enKey = ttk.Entry(lblfrm3, width=29)
 enKey.grid(column=1, row=0, padx=7, pady=5)
 bntPreview = ttk.Button(lblfrm3, text="Preview", command=preview)
 bntPreview.grid(column=0, row=1, padx=10, pady=10)
